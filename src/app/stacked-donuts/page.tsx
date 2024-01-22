@@ -82,16 +82,35 @@ function StackedDonuts() {
   const viewBox = '-175 -175 350 350'
 
   const startInnerRadius = 80
-  const ringHeight = 80
-  const ringGap = 4
+  const startRingHeight = 32
+  const startRingGap = 4
   const ringSegmentPadding = 0.02
+
+  function getArcProps(layerIndex: number): { innerRadius: number; outerRadius: number } {
+    if (layerIndex === 0) {
+      return {
+        innerRadius: startInnerRadius,
+        outerRadius: startInnerRadius + startRingHeight - startRingGap,
+      }
+    }
+
+    const previousArcProps = getArcProps(layerIndex - 1)
+
+    const ringGap = startRingGap + layerIndex * startRingGap * 0.75
+    const ringHeight = startRingHeight + layerIndex * startRingHeight * 0.5
+    const innerRadius = previousArcProps.outerRadius + ringGap
+
+    return {
+      innerRadius,
+      outerRadius: innerRadius + ringHeight,
+    }
+  }
 
   return (
     <div ref={containerRef} className="h-full w-full">
       <svg ref={svgRef} width="100%" height="100%">
         {layers.map((layer, layerIndex) => {
-          const innerRadius = startInnerRadius + layerIndex * ringHeight + ringGap
-          const outerRadius = startInnerRadius + ringHeight + layerIndex * ringHeight - ringGap
+          const { innerRadius, outerRadius } = getArcProps(layerIndex)
 
           // We need to double the items to account for the gaps
           const items = range(0, layerItemsCount * 2 - 1).map((_, index) => {
@@ -132,7 +151,7 @@ function StackedDonuts() {
                     const radius = (innerRadius + outerRadius) / 2
                     const x = radius * Math.sin(angle)
                     const y = -radius * Math.cos(angle)
-                    const imageSize = 25 * (0.25 * layerIndex + 1) // Set the size of the image
+                    const imageSize = 20 * (0.45 * layerIndex + 1) // Set the size of the image
 
                     if (!item) {
                       return null
